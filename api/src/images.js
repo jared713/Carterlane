@@ -11,9 +11,26 @@ try {
 const MAX_EDGE = Number(process.env.PHOTO_MAX_EDGE || 2400);
 const QUALITY = Number(process.env.PHOTO_QUALITY || 82);
 
+// What a browser can display as-is, if conversion is unavailable or fails.
+const WEB_SAFE = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
+function keepOriginalOr(buffer, contentType, why) {
+  if (WEB_SAFE.has(contentType)) {
+    return { bytes: buffer, contentType, width: null, height: null };
+  }
+  // Storing an unconvertible HEIC would leave a broken image in the gallery
+  // with nothing to explain it. Refuse instead, and say what happened.
+  const err = new Error(
+    `That ${contentType} image could not be converted for the web (${why}). ` +
+      'Please save it as a JPEG and upload that instead.',
+  );
+  err.status = 415;
+  throw err;
+}
+
 export async function shrinkImage(buffer, contentType) {
   if (!sharp) {
-    return { bytes: buffer, contentType, width: null, height: null };
+    return keepOriginalOr(buffer, contentType, 'image processing is unavailable');
   }
   try {
     const pipeline = sharp(buffer, { failOn: 'none' }).rotate();
@@ -33,7 +50,8 @@ export async function shrinkImage(buffer, contentType) {
       height: out.height ?? null,
     };
   } catch (err) {
-    console.error('Image processing failed, storing original:', err.message);
-    return { bytes: buffer, contentType, width: null, height: null };
+    if (err.status) throw err;
+    console.error('Image processing failed:', err.message);
+    return keepOriginalOr(buffer, contentType, err.message);
   }
 }

@@ -55,13 +55,20 @@ app.use((_req, res) => res.status(404).json({ error: 'Not found.' }));
 // eslint-disable-next-line no-unused-vars -- Express identifies error handlers by arity.
 app.use((err, _req, res, _next) => {
   if (err?.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({ error: 'That image is too large.' });
+    return res.status(413).json({
+      error: `That image is larger than ${process.env.MAX_UPLOAD_MB || 12}MB. ` +
+        'Shrink it, or raise MAX_UPLOAD_MB.',
+    });
+  }
+  if (err?.code === 'LIMIT_FILE_COUNT') {
+    return res.status(413).json({ error: 'Upload at most 20 photographs at a time.' });
+  }
+  // Anything that knows its own status has already said something useful.
+  if (typeof err?.status === 'number' && err.status < 500) {
+    return res.status(err.status).json({ error: err.message });
   }
   if (err?.message?.includes('is not allowed')) {
     return res.status(403).json({ error: err.message });
-  }
-  if (err?.message?.startsWith('Only JPEG')) {
-    return res.status(415).json({ error: err.message });
   }
   console.error(err);
   return res.status(500).json({ error: 'Something went wrong on our side.' });

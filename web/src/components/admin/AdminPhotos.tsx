@@ -118,12 +118,15 @@ export function AdminPhotos({ onExpired }: PanelProps) {
       >
         <p className="font-display text-lg">Drop photographs here</p>
         <p className="mt-1.5 text-sm text-stone-500">
-          JPEG, PNG, WebP or AVIF. They are resized and converted for the web automatically.
+          Straight from a phone or camera — JPEG, PNG, HEIC and the rest. They are
+          resized and converted for the web automatically.
         </p>
         <input
           ref={inputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/avif"
+          // Anything a phone or camera produces. The API is the real gate,
+          // and it says clearly what it will not take.
+          accept="image/*"
           multiple
           className="hidden"
           onChange={(event) => event.target.files && upload(event.target.files)}

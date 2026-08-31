@@ -13,11 +13,19 @@ import { shrinkImage } from '../images.js';
 export const adminRouter = express.Router();
 
 const MAX_UPLOAD_BYTES = Number(process.env.MAX_UPLOAD_MB || 12) * 1024 * 1024;
+// Everything here is converted to WebP on the way in, so the list is about
+// what can be read, not what a browser can display. HEIC matters most: it is
+// what an iPhone produces by default, and rejecting it turns "upload your
+// photos" into an error with no obvious cause.
 const ALLOWED_IMAGE_TYPES = new Set([
   'image/jpeg',
   'image/png',
   'image/webp',
   'image/avif',
+  'image/heic',
+  'image/heif',
+  'image/gif',
+  'image/tiff',
 ]);
 
 const upload = multer({
@@ -25,7 +33,12 @@ const upload = multer({
   limits: { fileSize: MAX_UPLOAD_BYTES, files: 20 },
   fileFilter: (_req, file, cb) => {
     if (!ALLOWED_IMAGE_TYPES.has(file.mimetype)) {
-      return cb(new Error('Only JPEG, PNG, WebP or AVIF images can be uploaded.'));
+      const err = new Error(
+        `${file.originalname} is a ${file.mimetype || 'unknown'} file. ` +
+          'Photographs must be JPEG, PNG, HEIC, WebP, AVIF, GIF or TIFF.',
+      );
+      err.status = 415;
+      return cb(err);
     }
     return cb(null, true);
   },
