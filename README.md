@@ -36,11 +36,16 @@ a redeploy to change.
 ### 1. The API on Railway
 
 1. **New Project → Deploy from GitHub repo**, pick this repository.
-2. Set the service **Root Directory** to `api`. Railway detects Node and runs
-   `npm start`; `railway.json` sets the health check to `/health`.
-3. **New → Database → Add PostgreSQL** in the same project. Railway injects
-   `DATABASE_URL` automatically — the schema is created on first boot, so there
-   is no migration step to run.
+2. **Settings → Source → Root Directory: `api`**, then save. This one is not
+   optional: without it Railway builds from the repository root, sees `api/`
+   and `web/` side by side, and fails with *"could not determine how to build
+   the app"*. With it set, the builder finds a plain Node app and
+   `api/railway.json` points the health check at `/health`.
+3. **New → Database → Add PostgreSQL** in the same project, then add
+   `DATABASE_URL=${{Postgres.DATABASE_URL}}` to the API service — typed with
+   the braces, as a variable reference rather than a pasted connection string.
+   (Substitute the database service's real name if you renamed it.) The schema
+   is created on first boot, so there is no migration step to run.
 4. Add these variables to the API service:
 
    | Variable | Value |
@@ -50,6 +55,11 @@ a redeploy to change.
    | `OWNER_EMAIL` | where booking requests are emailed |
    | `ALLOWED_ORIGINS` | your Vercel URL, comma-separated for more than one |
    | `ALLOW_VERCEL_PREVIEWS` | `true` if you want preview deploys to work |
+
+   Leave `ALLOWED_ORIGINS` out until Vercel is up — an empty value allows any
+   origin, so the site works immediately, and you can lock it down afterwards.
+   Do not set `PORT`: Railway provides it, and overriding it breaks the health
+   check.
 
 5. **Settings → Networking → Generate Domain** and note the URL.
 
