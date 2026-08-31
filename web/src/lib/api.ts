@@ -6,10 +6,22 @@ import type {
   Quote,
 } from './types';
 
-/** Railway API base, e.g. https://carterlane-api.up.railway.app */
-export const API_BASE = (
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
-).replace(/\/$/, '');
+/**
+ * Railway API base, e.g. https://carterlane-api.up.railway.app
+ *
+ * A hostname pasted without its scheme is the failure worth guarding against:
+ * `fetch('example.com/api/x')` is a *relative* path, so every call silently
+ * goes to the site's own origin and 404s, with nothing to suggest the base URL
+ * is at fault. Assume https rather than let that through.
+ */
+function resolveApiBase(configured: string | undefined): string {
+  const value = (configured ?? '').trim().replace(/\/+$/, '');
+  if (!value) return 'http://localhost:4000';
+  if (!/^https?:\/\//i.test(value)) return `https://${value}`;
+  return value;
+}
+
+export const API_BASE = resolveApiBase(process.env.NEXT_PUBLIC_API_URL);
 
 /** Photo URLs come back relative to the API host. */
 export function assetUrl(path: string): string {
