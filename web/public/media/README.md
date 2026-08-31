@@ -78,6 +78,15 @@ this should be anyway.
 over the local file. Worth doing if the clip is large, since it keeps the
 repository small and the file out of every deploy.
 
+## Replacing it later
+
+Upload the new file over the old one, keeping the name `st-pauls.mp4`. Vercel
+rebuilds and the change is live.
+
+Your own browser may keep showing the previous clip for up to an hour, because
+these files are cached. A hard reload (`Ctrl`/`Cmd` + `Shift` + `R`) bypasses
+that if you want to see the change immediately.
+
 ## Licensing
 
 Use footage you shot or that is explicitly licensed for commercial use.
