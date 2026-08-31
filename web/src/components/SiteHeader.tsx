@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Monogram } from './Monogram';
 
 const LINKS = [
   { href: '#the-flat', label: 'The flat' },
@@ -31,12 +32,13 @@ export function SiteHeader({ name }: { name: string }) {
       <div className="container-page flex h-16 items-center justify-between sm:h-20">
         <a
           href="#top"
+          aria-label={`${name} — back to the top`}
           className={[
-            'font-display text-lg tracking-tight transition-colors',
+            'transition-colors',
             scrolled ? 'text-ink' : 'text-stone-50',
           ].join(' ')}
         >
-          {name}
+          <Monogram name={name} />
         </a>
         <nav className="hidden items-center gap-8 md:flex">
           {LINKS.map((link) => (
