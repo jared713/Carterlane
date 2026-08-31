@@ -47,8 +47,8 @@ const upload = multer({
 const isoDate = z.string().refine(isIsoDate, 'Expected a YYYY-MM-DD date.');
 
 const loginLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  limit: 8,
+  windowMs: Number(process.env.LOGIN_RATE_WINDOW_MIN || 10) * 60 * 1000,
+  limit: Number(process.env.LOGIN_RATE_LIMIT || 8),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many sign-in attempts. Try again in a few minutes.' },

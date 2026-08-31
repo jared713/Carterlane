@@ -188,6 +188,17 @@ async function main() {
   );
   check('too many guests is rejected', tooMany.status === 400);
 
+  // Every booking check below is meaningless once the limiter starts refusing,
+  // and a wall of failures hides the one real cause. Say it once and stop.
+  if (tooMany.status === 429 || past.status === 429) {
+    console.log(
+      '\nFAIL  the booking rate limit is exhausted.\n' +
+        '      This suite makes several bookings per run. Either wait for the\n' +
+        '      window to pass, or start the API with a higher BOOKING_RATE_LIMIT.',
+    );
+    process.exit(1);
+  }
+
   const booking = await api(
     '/api/bookings',
     json('POST', {

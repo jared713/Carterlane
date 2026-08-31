@@ -118,6 +118,10 @@ cd api
 BASE_URL=http://localhost:4000 ADMIN_PASSWORD=yourpassword node test/smoke.mjs
 ```
 
+It makes several bookings per run, so start the API with `BOOKING_RATE_LIMIT`
+raised (say 200) if you intend to run it more than once inside the limiter's
+fifteen-minute window.
+
 It creates its own bookings, rates, blocks and photos and cleans them up after.
 
 ---

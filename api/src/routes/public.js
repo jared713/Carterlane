@@ -24,9 +24,12 @@ const bookingSchema = z.object({
   website: z.string().max(0).optional(),
 });
 
+// Ten attempts a quarter of an hour is generous for a guest and tight for a
+// script. It is configurable because the end-to-end suite makes eight bookings
+// in a run, so a fixed limit makes the tests unrunnable twice in a row.
 const bookingLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
+  windowMs: Number(process.env.BOOKING_RATE_WINDOW_MIN || 15) * 60 * 1000,
+  limit: Number(process.env.BOOKING_RATE_LIMIT || 10),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests. Please try again shortly.' },
