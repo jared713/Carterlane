@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-stone-50 text-ink antialiased;
+    font-feature-settings: 'kern', 'liga';
+  }
+
+  ::selection {
+    @apply bg-brass/25;
+  }
+
+  /* A visible focus ring everywhere, since the booking flow is keyboard-heavy. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brass ring-offset-2 ring-offset-stone-50;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-6 sm:px-8;
+  }
+
+  .eyebrow {
+    @apply text-[0.7rem] font-medium uppercase tracking-widest text-stone-500;
+  }
+
+  .heading-xl {
+    @apply font-display text-4xl font-light leading-[1.05] sm:text-5xl lg:text-6xl;
+  }
+
+  .heading-lg {
+    @apply font-display text-3xl font-light leading-tight sm:text-4xl;
+  }
+
+  .prose-body {
+    @apply text-[1.0625rem] leading-relaxed text-stone-700;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3
+           text-sm font-medium transition duration-200 disabled:cursor-not-allowed
+           disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-ink text-stone-50 hover:bg-stone-800;
+  }
+
+  .btn-secondary {
+    @apply btn border border-stone-300 bg-white/70 text-ink hover:border-stone-500
+           hover:bg-white;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-stone-500;
+  }
+
+  .field {
+    @apply w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2.5 text-[0.95rem]
+           text-ink placeholder:text-stone-400 focus:border-brass;
+  }
+
+  .card {
+    @apply rounded-2xl border border-stone-200 bg-white shadow-[0_1px_2px_rgba(20,22,26,0.04),0_12px_32px_-16px_rgba(20,22,26,0.18)];
+  }
+}
+
+/* Nobody should be ambushed by a moving hero. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

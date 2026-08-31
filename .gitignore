@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# environment
+.env
+.env.local
+.env*.local
+
+# logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# editors & OS
+.DS_Store
+.vscode/
+.idea/
+
+# vercel
+.vercel
+
+# large media the owner drops in locally
+web/public/media/*.mp4
+web/public/media/*.webm
+web/public/media/*.mov
