@@ -126,7 +126,18 @@ export function AreaMap({ propertyName }: { propertyName: string }) {
         <rect x="28" y="-8" width="10" height="22" rx="1" />
       </g>
 
-      {/* The flat */}
+      {/* The flat, named by its street since nothing else labels it */}
+      <text
+        x="300"
+        y="222"
+        textAnchor="middle"
+        fontFamily="var(--font-sans), system-ui, sans-serif"
+        fontSize="19"
+        fontWeight="500"
+        fill="#8a6d2e"
+      >
+        Carter Lane
+      </text>
       <g transform="translate(300 250)">
         <circle r="21" fill="#a8853f" opacity="0.14" />
         <circle r="10" fill="#a8853f" />
@@ -172,23 +183,7 @@ export function AreaMap({ propertyName }: { propertyName: string }) {
         <text x="612" y="424">
           Southwark Bridge
         </text>
-        <text x="196" y="290" fontSize="16" fill="#9a8a6a">
-          Carter Lane
-        </text>
       </g>
-
-      {/* The flat's own label, set apart in the accent colour */}
-      <text
-        x="300"
-        y="220"
-        textAnchor="middle"
-        fontFamily="var(--font-sans), system-ui, sans-serif"
-        fontSize="21"
-        fontWeight="500"
-        fill="#8a6d2e"
-      >
-        {propertyName}
-      </text>
 
       {/* North */}
       <g transform="translate(752 84)" fill="#a3906c">
