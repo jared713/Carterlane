@@ -3,7 +3,7 @@ import { Gallery } from '@/components/Gallery';
 import { HeroVideo } from '@/components/HeroVideo';
 import { RatesTable } from '@/components/RatesTable';
 import { SiteHeader } from '@/components/SiteHeader';
-import { getAvailability, getPhotos, getProperty } from '@/lib/api';
+import { API_BASE, getAvailability, getPhotos, getProperty } from '@/lib/api';
 import { addDays, formatMoney, today } from '@/lib/dates';
 import type { Availability, Photo, Property } from '@/lib/types';
 
@@ -33,15 +33,35 @@ const FALLBACK: Property = {
 };
 
 export default async function HomePage() {
-  // The site must still render if the API is asleep or redeploying.
+  // The site must still render if the API is asleep or redeploying. Falling
+  // back silently would leave a page of placeholder copy and no way to tell
+  // why, so each failure names itself and the URL it was trying, which is
+  // what shows up in the hosting platform's runtime logs.
+  const onFailure = (what: string) => (error: unknown) => {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.error(
+      `[carterlane] could not load ${what} from ${API_BASE} — ${reason}. ` +
+        'Serving fallback content. Check NEXT_PUBLIC_API_URL and that the API is reachable.',
+    );
+  };
+
   const [property, photos, availability] = await Promise.all([
-    getProperty().catch(() => FALLBACK),
-    getPhotos().catch((): Photo[] => []),
+    getProperty().catch((error) => {
+      onFailure('the property details')(error);
+      return FALLBACK;
+    }),
+    getPhotos().catch((error): Photo[] => {
+      onFailure('the photographs')(error);
+      return [];
+    }),
     // Only the season table needs this; the calendar fetches its own live copy.
     getAvailability(today(), addDays(today(), 540), {
       revalidate: 300,
       timeoutMs: 4_000,
-    }).catch((): Availability | null => null),
+    }).catch((error): Availability | null => {
+      onFailure('the rates')(error);
+      return null;
+    }),
   ]);
 
   const facts = [

@@ -57,7 +57,21 @@ async function request<T>(path: string, options: FetchOptions = {}): Promise<T> 
   }
 
   const text = await res.text();
-  const body = text ? JSON.parse(text) : null;
+
+  let body: { error?: string; details?: { field: string; message: string }[] } | null =
+    null;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    // Anything that is not our API — a proxy error page, a hosting platform's
+    // "host not found" — lands here. Say what actually came back rather than
+    // reporting a JSON syntax error against an unknown responder.
+    throw new ApiError(
+      `Expected JSON from the booking service but got ${res.status}: ` +
+        `${text.slice(0, 120).replace(/\s+/g, ' ').trim()}`,
+      res.status,
+    );
+  }
 
   if (!res.ok) {
     throw new ApiError(
