@@ -64,6 +64,10 @@ Without a local checkout, use GitHub in a browser:
 1. Open the repository and click into `web/public/media`.
 2. **Add file → Upload files**, and drag the clip in.
 3. Name it **`st-pauls.mp4`** exactly — that is what the page looks for.
+   Watch for a doubled extension. Windows hides known extensions by default, so
+   typing `st-pauls.mp4` over a file already called `clip.mp4` produces
+   `st-pauls.mp4.mp4`, and the page silently falls back to the still. Check the
+   name on GitHub after uploading.
 4. Commit to the branch the site deploys from. Vercel rebuilds by itself.
 
 GitHub's web uploader accepts files up to 25 MB, which is well above the size
