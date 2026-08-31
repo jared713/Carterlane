@@ -29,7 +29,5 @@ yarn-error.log*
 # vercel
 .vercel
 
-# large media the owner drops in locally
-web/public/media/*.mp4
-web/public/media/*.webm
-web/public/media/*.mov
+# Video for the hero is committed deliberately — see web/public/media/README.md.
+# Keep it small (under ~10MB) so clones and deploys stay quick.

@@ -57,16 +57,22 @@ Then point the hero at it in `web/src/app/page.tsx`:
 <HeroVideo poster="/media/st-pauls-poster.jpg">
 ```
 
-## Hosting it elsewhere
+## Getting it into the repository
 
-Video files are excluded from git (see `.gitignore`) so the repository stays
-small. Two ways to get it live:
+Without a local checkout, use GitHub in a browser:
 
-1. **Commit it anyway** — remove the `*.mp4` line from `.gitignore`. Fine for a
-   file under ~10 MB.
-2. **Serve it from a CDN or object store** — upload it anywhere public and set
-   `NEXT_PUBLIC_HERO_VIDEO_URL` in Vercel to the full URL. The site uses that in
-   preference to the local file.
+1. Open the repository and click into `web/public/media`.
+2. **Add file → Upload files**, and drag the clip in.
+3. Name it **`st-pauls.mp4`** exactly — that is what the page looks for.
+4. Commit to the branch the site deploys from. Vercel rebuilds by itself.
+
+GitHub's web uploader accepts files up to 25 MB, which is well above the size
+this should be anyway.
+
+**Or serve it from elsewhere** — upload it to any public host and set
+`NEXT_PUBLIC_HERO_VIDEO_URL` in Vercel to the full URL. The page prefers that
+over the local file. Worth doing if the clip is large, since it keeps the
+repository small and the file out of every deploy.
 
 ## Licensing
 
