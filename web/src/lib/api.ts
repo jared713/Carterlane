@@ -28,15 +28,33 @@ export class ApiError extends Error {
   }
 }
 
-type FetchOptions = RequestInit & { revalidate?: number };
+type FetchOptions = RequestInit & { revalidate?: number; timeoutMs?: number };
+
+/**
+ * A page that renders without its data beats a page that never renders at all,
+ * so every request gives up rather than waiting on Node's 300-second default.
+ * A Railway service waking from idle is the case that matters: the home page
+ * falls back to its built-in copy instead of hanging until the browser gives up.
+ */
+const DEFAULT_TIMEOUT_MS = 8_000;
 
 async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
-  const { revalidate, ...init } = options;
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    // Availability and prices change; never serve a stale calendar.
-    ...(revalidate === undefined ? { cache: 'no-store' } : { next: { revalidate } }),
-  });
+  const { revalidate, timeoutMs = DEFAULT_TIMEOUT_MS, ...init } = options;
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      signal: init.signal ?? AbortSignal.timeout(timeoutMs),
+      // Availability and prices change; never serve a stale calendar.
+      ...(revalidate === undefined ? { cache: 'no-store' } : { next: { revalidate } }),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'TimeoutError') {
+      throw new ApiError(`The booking service did not respond in time.`, 504);
+    }
+    throw new ApiError('The booking service could not be reached.', 503);
+  }
 
   const text = await res.text();
   const body = text ? JSON.parse(text) : null;
@@ -51,17 +69,40 @@ async function request<T>(path: string, options: FetchOptions = {}): Promise<T> 
   return body as T;
 }
 
+/**
+ * Rendering the page and interacting with it want different patience. These
+ * two back page content that has a sensible fallback, so they give up quickly;
+ * the quote and booking calls a guest is waiting on are allowed far longer.
+ */
+const RENDER_TIMEOUT_MS = 4_000;
+
 export function getProperty() {
-  return request<Property>('/api/property', { revalidate: 60 });
+  return request<Property>('/api/property', {
+    revalidate: 60,
+    timeoutMs: RENDER_TIMEOUT_MS,
+  });
 }
 
 export function getPhotos() {
-  return request<Photo[]>('/api/photos', { revalidate: 60 });
+  return request<Photo[]>('/api/photos', {
+    revalidate: 60,
+    timeoutMs: RENDER_TIMEOUT_MS,
+  });
 }
 
-export function getAvailability(from: string, to: string) {
+/**
+ * Live by default, for the calendar a guest is actually clicking on. The home
+ * page passes a revalidate window instead, because it only needs the rate
+ * rules for the season table — so rendering never waits on a live call.
+ */
+export function getAvailability(
+  from: string,
+  to: string,
+  options: { revalidate?: number; timeoutMs?: number } = {},
+) {
   return request<Availability>(
     `/api/availability?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    options,
   );
 }
 
@@ -85,6 +126,8 @@ export function createBooking(payload: {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+    // Worth waiting on: a guest who gives up mid-request may submit twice.
+    timeoutMs: 25_000,
   });
 }
 
@@ -101,15 +144,26 @@ export const adminToken = {
 export async function adminRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = adminToken.get();
   const isFormData = options.body instanceof FormData;
-  const res = await fetch(`${API_BASE}/api/admin${path}`, {
-    ...options,
-    cache: 'no-store',
-    headers: {
-      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/admin${path}`, {
+      ...options,
+      cache: 'no-store',
+      // Photo uploads are megabytes over a domestic connection; the rest is JSON.
+      signal: options.signal ?? AbortSignal.timeout(isFormData ? 120_000 : 20_000),
+      headers: {
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'TimeoutError') {
+      throw new ApiError('That took too long. Check your connection and try again.', 504);
+    }
+    throw new ApiError('Could not reach the booking service.', 503);
+  }
 
   if (res.status === 401) {
     adminToken.clear();
@@ -125,11 +179,17 @@ export async function adminRequest<T>(path: string, options: RequestInit = {}): 
 }
 
 export async function adminLogin(password: string) {
-  const res = await fetch(`${API_BASE}/api/admin/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+      signal: AbortSignal.timeout(20_000),
+    });
+  } catch {
+    throw new ApiError('Could not reach the booking service. Try again shortly.', 503);
+  }
   const body = await res.json().catch(() => null);
   if (!res.ok) throw new ApiError(body?.error || 'Sign-in failed.', res.status);
   adminToken.set(body.token);

@@ -37,7 +37,11 @@ export default async function HomePage() {
   const [property, photos, availability] = await Promise.all([
     getProperty().catch(() => FALLBACK),
     getPhotos().catch((): Photo[] => []),
-    getAvailability(today(), addDays(today(), 540)).catch((): Availability | null => null),
+    // Only the season table needs this; the calendar fetches its own live copy.
+    getAvailability(today(), addDays(today(), 540), {
+      revalidate: 300,
+      timeoutMs: 4_000,
+    }).catch((): Availability | null => null),
   ]);
 
   const facts = [
