@@ -1,3 +1,4 @@
+import { AreaMap } from '@/components/AreaMap';
 import { BookingWidget } from '@/components/BookingWidget';
 import { Gallery } from '@/components/Gallery';
 import { HeroVideo } from '@/components/HeroVideo';
@@ -227,14 +228,8 @@ export default async function HomePage() {
                 ))}
               </ul>
             </div>
-            <div className="overflow-hidden rounded-2xl border border-stone-200">
-              <iframe
-                title="Map of the area around the flat"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.1085%2C51.5100%2C-0.0930%2C51.5175&layer=mapnik&marker=51.5138%2C-0.1007"
-                className="h-full min-h-[22rem] w-full"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+            <div className="overflow-hidden rounded-2xl border border-stone-200 bg-[#f3efe7]">
+              <AreaMap propertyName={property.name} />
             </div>
           </div>
         </section>
