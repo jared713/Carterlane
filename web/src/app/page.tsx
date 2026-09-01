@@ -6,7 +6,7 @@ import { Monogram } from '@/components/Monogram';
 import { RatesTable } from '@/components/RatesTable';
 import { SiteHeader } from '@/components/SiteHeader';
 import { API_BASE, getAvailability, getPhotos, getProperty } from '@/lib/api';
-import { addDays, formatMoney, today } from '@/lib/dates';
+import { addDays, today } from '@/lib/dates';
 import type { Availability, Photo, Property } from '@/lib/types';
 
 // Availability changes with every booking, so nothing here is cached.
@@ -14,7 +14,8 @@ export const dynamic = 'force-dynamic';
 
 const FALLBACK: Property = {
   name: 'Carterlane',
-  tagline: "A St Paul's view, and a front door of your own.",
+  tagline:
+    "Wake to the bells of St Paul’s, on a quiet cobbled lane in the City of London",
   description:
     'A calm, high-ceilinged flat a few minutes from the cathedral steps.',
   address: 'Carter Lane, London EC4',
@@ -87,8 +88,8 @@ export default async function HomePage() {
               {property.tagline}
             </h1>
             <p className="mt-6 max-w-xl animate-fade-up text-lg leading-relaxed text-stone-200 [animation-delay:240ms]">
-              A quiet flat in the shadow of the dome, let directly by the people who
-              look after it. From {formatMoney(property.fromRate, property.currency)} a night.
+              A quiet one-bedroom bolt-hole for two &mdash; your own front door, moments
+              from St Paul&rsquo;s, Blackfriars and the river.
             </p>
             <div className="mt-9 flex animate-fade-up flex-wrap gap-3 [animation-delay:360ms]">
               <a href="#book" className="btn bg-stone-50 text-ink hover:bg-white">

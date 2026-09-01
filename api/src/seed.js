@@ -26,7 +26,7 @@ async function seed() {
      WHERE id = 1`,
     [
       'Carterlane',
-      "A St Paul's view, and a front door of your own.",
+      "Wake to the bells of St Paul’s, on a quiet cobbled lane in the City of London",
       'A calm, high-ceilinged flat a few minutes from the cathedral steps. ' +
         'The living room looks straight out at the dome — floodlit after dark — ' +
         'and the City is quiet at the weekend in a way visitors never expect. ' +
