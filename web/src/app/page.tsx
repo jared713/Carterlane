@@ -2,6 +2,7 @@ import { AreaMap } from '@/components/AreaMap';
 import { BookingWidget } from '@/components/BookingWidget';
 import { Gallery } from '@/components/Gallery';
 import { HeroVideo } from '@/components/HeroVideo';
+import { Monogram } from '@/components/Monogram';
 import { RatesTable } from '@/components/RatesTable';
 import { SiteHeader } from '@/components/SiteHeader';
 import { API_BASE, getAvailability, getPhotos, getProperty } from '@/lib/api';
@@ -238,8 +239,8 @@ export default async function HomePage() {
       <footer className="border-t border-stone-200 py-14">
         <div className="container-page flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div>
-            <p className="font-display text-xl">{property.name}</p>
-            <p className="mt-2 text-sm text-stone-500">{property.address}</p>
+            <Monogram name={property.name} className="h-16 w-16 text-brass" />
+            <p className="mt-3 text-sm text-stone-500">{property.address}</p>
           </div>
           <div className="text-sm text-stone-600">
             {property.contactEmail && (
