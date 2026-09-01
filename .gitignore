@@ -31,3 +31,7 @@ yarn-error.log*
 
 # Video for the hero is committed deliberately — see web/public/media/README.md.
 # Keep it small (under ~10MB) so clones and deploys stay quick.
+
+# Written by `next dev` for AI tooling; not part of this project.
+web/AGENTS.md
+web/CLAUDE.md
