@@ -114,7 +114,7 @@ publicRouter.get('/availability', async (req, res, next) => {
     const calendar = await availabilityCalendar(from, to);
     const property = await getProperty();
     const { rows: rules } = await query(
-      `SELECT name, start_night, end_night, nightly_rate, min_nights, priority
+      `SELECT id, name, start_night, end_night, nightly_rate, min_nights, priority
          FROM rate_rules
         WHERE start_night <= $2 AND end_night >= $1
         ORDER BY priority DESC, id DESC`,
@@ -129,6 +129,8 @@ publicRouter.get('/availability', async (req, res, next) => {
       maxGuests: property.max_guests,
       cleaningFee: property.cleaning_fee,
       rates: rules.map((rule) => ({
+        // The id is what makes a rate identifiable: name and dates can repeat.
+        id: rule.id,
         name: rule.name,
         start: rule.start_night,
         end: rule.end_night,

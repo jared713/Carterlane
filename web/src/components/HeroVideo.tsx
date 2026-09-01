@@ -5,18 +5,24 @@ import { useEffect, useRef, useState } from 'react';
 type Props = {
   /** Falls back to /media/st-pauls.mp4 in the public folder. */
   src?: string;
+  /**
+   * A still to hold the frame until the video paints. Optional, and best left
+   * unset unless it is a frame of the video itself: anything else announces
+   * itself as a placeholder in the second before the footage arrives.
+   */
   poster?: string;
   children: React.ReactNode;
 };
 
 /**
  * Full-bleed motion backdrop of St Paul's. The video is decorative: it is
- * muted, loops, carries no audio track, and is replaced by the poster still
- * for anyone who has asked for reduced motion or whose connection is slow.
+ * muted, loops, carries no audio track, and is skipped entirely for anyone who
+ * has asked for reduced motion or whose connection is slow — they get the dark
+ * ground the section already sits on, which the headline is set against in any
+ * case, so nothing is lost but the movement.
  */
 export function HeroVideo({ src, poster, children }: Props) {
   const videoSrc = src || process.env.NEXT_PUBLIC_HERO_VIDEO_URL || '/media/st-pauls.mp4';
-  const posterSrc = poster || '/media/st-pauls-poster.svg';
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showVideo, setShowVideo] = useState(false);
@@ -38,23 +44,25 @@ export function HeroVideo({ src, poster, children }: Props) {
     if (!showVideo) return;
     const video = videoRef.current;
     if (!video) return;
-    // Autoplay can still be refused; the poster underneath stays visible.
+    // Autoplay can still be refused; the dark ground behind stays visible.
     video.play().catch(() => undefined);
   }, [showVideo]);
 
   return (
     <section className="relative isolate flex min-h-[92svh] items-end overflow-hidden bg-ink">
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-20 bg-cover bg-center"
-        style={{ backgroundImage: `url(${posterSrc})` }}
-      />
+      {poster && (
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-20 bg-cover bg-center"
+          style={{ backgroundImage: `url(${poster})` }}
+        />
+      )}
 
       {showVideo && (
         <video
           ref={videoRef}
           className="absolute inset-0 -z-10 h-full w-full animate-fade-in object-cover"
-          poster={posterSrc}
+          {...(poster ? { poster } : {})}
           autoPlay
           muted
           loop

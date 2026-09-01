@@ -8,9 +8,8 @@ is needed.
 web/public/media/st-pauls.mp4
 ```
 
-Until that file exists the page falls back to `st-pauls-poster.svg`, the
-stylised dome you can see on the site now. Nothing breaks; the still simply
-stays put.
+Until that file exists the hero shows the dark ground it already sits on, with
+the headline over it. Nothing breaks — there is simply no movement.
 
 ## What the file should be
 
@@ -42,16 +41,20 @@ ffmpeg -i original.mov \
 `-an` strips the audio, `-crf 26` trades a little quality for a much smaller
 file, and `+faststart` lets playback begin before the whole file has arrived.
 
-## A matching poster frame
+## A poster frame, if you want one
 
-The first frame is shown while the video loads. To use a still from your own
-footage instead of the SVG:
+By default there is no poster: the hero is dark until the video paints, which
+is seamless because the footage is dark too. A placeholder image would only
+announce itself in the second before the video arrives.
+
+If you do want a still — worth it on slow connections, where the video may take
+a moment — use a frame of the video itself, never a stand-in:
 
 ```bash
 ffmpeg -i st-pauls.mp4 -vframes 1 -q:v 3 st-pauls-poster.jpg
 ```
 
-Then point the hero at it in `web/src/app/page.tsx`:
+Then pass it in `web/src/app/page.tsx`:
 
 ```tsx
 <HeroVideo poster="/media/st-pauls-poster.jpg">
@@ -98,5 +101,5 @@ terms are per-clip rather than per-site.
 
 The video is decorative, muted and marked `aria-hidden`. Anyone whose system
 asks for reduced motion, who has data saver on, or who is on a 2G connection
-sees the poster still instead. Do not put text or information in the video that
+sees the dark hero without it. Do not put text or information in the video that
 is not also on the page.

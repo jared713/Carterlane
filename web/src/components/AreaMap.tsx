@@ -25,7 +25,10 @@ export function AreaMap({ propertyName }: { propertyName: string }) {
       role="img"
       aria-labelledby="area-map-title area-map-desc"
     >
-      <title id="area-map-title">The area around {propertyName}</title>
+      {/* One string, not text plus an expression: a browser collapses the
+          children of an SVG <title>, which loses the markers React needs to
+          hydrate it and fails the whole tree. */}
+      <title id="area-map-title">{`The area around ${propertyName}`}</title>
       <desc id="area-map-desc">
         A simplified map of this part of the City of London. The flat sits on
         Carter Lane, a few minutes south-west of St Paul&rsquo;s Cathedral. The

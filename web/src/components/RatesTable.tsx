@@ -35,7 +35,7 @@ export function RatesTable({
             </td>
           </tr>
           {seasons.map((season) => (
-            <tr key={`${season.name}-${season.start}`}>
+            <tr key={season.id}>
               <td className="px-5 py-4 text-ink">{season.name}</td>
               <td className="px-5 py-4 text-stone-600">
                 {formatShort(season.start)} &ndash; {formatShort(season.end)}
