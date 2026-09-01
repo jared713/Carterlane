@@ -34,11 +34,13 @@ export function SiteHeader({ name }: { name: string }) {
           href="#top"
           aria-label={`${name} — back to the top`}
           className={[
-            'transition-colors',
-            scrolled ? 'text-ink' : 'text-stone-50',
+            'inline-flex items-center transition-colors',
+            // Brass on stone; a lighter, warmer tone over the video, where the
+            // brass itself is too close in value to the footage behind it.
+            scrolled ? 'text-brass' : 'text-[#d8b47a]',
           ].join(' ')}
         >
-          <Monogram name={name} />
+          <Monogram name={name} className="h-14 w-14 sm:h-16 sm:w-16" />
         </a>
         <nav className="hidden items-center gap-8 md:flex">
           {LINKS.map((link) => (
