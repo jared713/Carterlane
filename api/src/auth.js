@@ -2,9 +2,16 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
 const TOKEN_TTL = process.env.SESSION_TTL || '12h';
+
+// Pasting into a hosting dashboard picks up stray whitespace and newlines with
+// nothing on screen to show for it, and the result is a password that can
+// never be typed correctly. Whitespace at either end of a configured secret is
+// always a slip, never intent, so trim it.
+const clean = (value) => (typeof value === 'string' ? value.trim() : '');
+
+const ADMIN_PASSWORD = clean(process.env.ADMIN_PASSWORD);
+const ADMIN_PASSWORD_HASH = clean(process.env.ADMIN_PASSWORD_HASH);
 
 // Hash the plaintext password once at boot so every login attempt costs the
 // same regardless of whether the submitted password is close to correct.
