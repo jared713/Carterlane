@@ -91,6 +91,47 @@ const STATEMENTS = [
      created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
    )`,
   `CREATE INDEX IF NOT EXISTS photos_position_idx ON photos (position, id)`,
+
+  // Details that are the same on every invoice, typed once.
+  `CREATE TABLE IF NOT EXISTS invoice_settings (
+     id                SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+     issuer_name       TEXT NOT NULL DEFAULT 'Carterlane',
+     issuer_legal      TEXT NOT NULL DEFAULT '',
+     issuer_address    TEXT NOT NULL DEFAULT '',
+     issuer_email      TEXT NOT NULL DEFAULT '',
+     issuer_phone      TEXT NOT NULL DEFAULT '',
+     issuer_company_no TEXT NOT NULL DEFAULT '',
+     bank_name         TEXT NOT NULL DEFAULT '',
+     bank_sort_code    TEXT NOT NULL DEFAULT '',
+     bank_account      TEXT NOT NULL DEFAULT '',
+     payment_terms     TEXT NOT NULL DEFAULT 'Payment is due within 14 days.',
+     updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  `INSERT INTO invoice_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING`,
+
+  // Amounts are stored as given rather than as a computed total, so an invoice
+  // reprinted years later shows exactly what was sent.
+  `CREATE TABLE IF NOT EXISTS invoices (
+     id             SERIAL PRIMARY KEY,
+     number         TEXT NOT NULL UNIQUE,
+     issued_on      DATE NOT NULL,
+     due_on         DATE,
+     period         TEXT NOT NULL DEFAULT '',
+     client_name    TEXT NOT NULL,
+     client_address TEXT NOT NULL DEFAULT '',
+     description    TEXT NOT NULL,
+     detail         TEXT NOT NULL DEFAULT '',
+     days           NUMERIC(10,2) NOT NULL CHECK (days > 0),
+     rate           NUMERIC(10,2) NOT NULL CHECK (rate >= 0),
+     currency       TEXT NOT NULL DEFAULT 'GBP',
+     paid           BOOLEAN NOT NULL DEFAULT false,
+     paid_on        DATE,
+     paid_method    TEXT NOT NULL DEFAULT 'Bank transfer',
+     notes          TEXT NOT NULL DEFAULT '',
+     created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  `CREATE INDEX IF NOT EXISTS invoices_issued_idx ON invoices (issued_on DESC, id DESC)`,
 ];
 
 export async function migrate() {

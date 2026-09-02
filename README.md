@@ -25,6 +25,7 @@ nights and emails both sides. No payment is taken online.
 | Rates | Seasonal pricing with its own minimum stay; overlaps resolve by priority |
 | Photos | Drag in photographs, caption and reorder them; they resize automatically |
 | Details | Standard rate, cleaning charge, capacity, description, amenities, contact |
+| Invoices | Raise an invoice, preview it as it will print, and save it to PDF |
 
 Everything the public site shows comes from the database, so none of it needs
 a redeploy to change.
@@ -148,6 +149,20 @@ Each night is priced independently: the highest-priority rate rule covering it
 wins, otherwise the standard rate applies. A rule can also raise the minimum
 stay for the nights it covers — which is how a four-night minimum over Christmas
 sits inside an otherwise two-night season. The cleaning charge is added once.
+
+### Invoices
+
+The owner area raises invoices against a day rate and produces a PDF. The
+document is rendered as a complete HTML page and printed by the browser, which
+gives crisp vector text at any size and keeps a client's address and the bank
+details off every URL and out of any public route. Rendering it server-side
+would mean carrying a headless browser for one feature; rasterising it in the
+browser would produce a blurry document.
+
+The preview is that same document in an iframe rather than an approximation of
+it, so what the printer produces is what is on screen. Your own details and
+bank particulars are stored once and reused; each invoice keeps the days and
+rate it was issued with, so reprinting one years later shows what was sent.
 
 ### Photographs
 

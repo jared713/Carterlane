@@ -531,3 +531,158 @@ adminRouter.delete('/photos/:id', async (req, res, next) => {
     return next(err);
   }
 });
+
+/* --------------------------------------------------------------- invoices */
+
+const settingsSchema = z.object({
+  issuerName: z.string().trim().min(1).max(120),
+  issuerLegal: z.string().trim().max(200),
+  issuerAddress: z.string().trim().max(400),
+  issuerEmail: z.string().trim().max(200),
+  issuerPhone: z.string().trim().max(60),
+  issuerCompanyNo: z.string().trim().max(60),
+  bankName: z.string().trim().max(120),
+  bankSortCode: z.string().trim().max(20),
+  bankAccount: z.string().trim().max(40),
+  paymentTerms: z.string().trim().max(600),
+});
+
+adminRouter.get('/invoice-settings', async (_req, res, next) => {
+  try {
+    const { rows } = await query('SELECT * FROM invoice_settings WHERE id = 1');
+    res.json(rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.put('/invoice-settings', async (req, res, next) => {
+  try {
+    const parsed = settingsSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
+    }
+    const s = parsed.data;
+    const { rows } = await query(
+      `UPDATE invoice_settings SET
+         issuer_name = $1, issuer_legal = $2, issuer_address = $3, issuer_email = $4,
+         issuer_phone = $5, issuer_company_no = $6, bank_name = $7,
+         bank_sort_code = $8, bank_account = $9, payment_terms = $10,
+         updated_at = now()
+       WHERE id = 1 RETURNING *`,
+      [s.issuerName, s.issuerLegal, s.issuerAddress, s.issuerEmail, s.issuerPhone,
+       s.issuerCompanyNo, s.bankName, s.bankSortCode, s.bankAccount, s.paymentTerms],
+    );
+    return res.json(rows[0]);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+const invoiceSchema = z.object({
+  number: z.string().trim().min(1).max(60),
+  issuedOn: isoDate,
+  dueOn: isoDate.nullable().optional(),
+  period: z.string().trim().max(120).optional().default(''),
+  clientName: z.string().trim().min(1).max(160),
+  clientAddress: z.string().trim().max(400).optional().default(''),
+  description: z.string().trim().min(1).max(300),
+  detail: z.string().trim().max(300).optional().default(''),
+  days: z.coerce.number().positive().max(100000),
+  rate: z.coerce.number().min(0).max(1000000),
+  currency: z.enum(['GBP', 'EUR', 'USD']).optional().default('GBP'),
+  paid: z.boolean().optional().default(false),
+  paidOn: isoDate.nullable().optional(),
+  paidMethod: z.string().trim().max(80).optional().default('Bank transfer'),
+  notes: z.string().trim().max(1000).optional().default(''),
+});
+
+const invoiceColumns = (v) => [
+  v.number, v.issuedOn, v.dueOn ?? null, v.period, v.clientName, v.clientAddress,
+  v.description, v.detail, v.days, v.rate, v.currency, v.paid,
+  v.paid ? (v.paidOn ?? null) : null, v.paidMethod, v.notes,
+];
+
+const shapeInvoice = (row) => ({
+  ...row,
+  days: Number(row.days),
+  rate: Number(row.rate),
+  total: Number(row.days) * Number(row.rate),
+});
+
+adminRouter.get('/invoices', async (_req, res, next) => {
+  try {
+    const { rows } = await query(
+      'SELECT * FROM invoices ORDER BY issued_on DESC, id DESC LIMIT 500',
+    );
+    res.json(rows.map(shapeInvoice));
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post('/invoices', async (req, res, next) => {
+  try {
+    const parsed = invoiceSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        error: 'Please check the invoice.',
+        details: parsed.error.issues.map((i) => ({
+          field: i.path.join('.'),
+          message: i.message,
+        })),
+      });
+    }
+    const { rows } = await query(
+      `INSERT INTO invoices
+         (number, issued_on, due_on, period, client_name, client_address,
+          description, detail, days, rate, currency, paid, paid_on, paid_method, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+       RETURNING *`,
+      invoiceColumns(parsed.data),
+    );
+    return res.status(201).json(shapeInvoice(rows[0]));
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'An invoice with that number already exists.' });
+    }
+    return next(err);
+  }
+});
+
+adminRouter.put('/invoices/:id', async (req, res, next) => {
+  try {
+    const parsed = invoiceSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
+    }
+    const { rows } = await query(
+      `UPDATE invoices SET
+         number = $1, issued_on = $2, due_on = $3, period = $4, client_name = $5,
+         client_address = $6, description = $7, detail = $8, days = $9, rate = $10,
+         currency = $11, paid = $12, paid_on = $13, paid_method = $14, notes = $15,
+         updated_at = now()
+       WHERE id = $16 RETURNING *`,
+      [...invoiceColumns(parsed.data), Number(req.params.id)],
+    );
+    if (!rows.length) return res.status(404).json({ error: 'No such invoice.' });
+    return res.json(shapeInvoice(rows[0]));
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'An invoice with that number already exists.' });
+    }
+    return next(err);
+  }
+});
+
+adminRouter.delete('/invoices/:id', async (req, res, next) => {
+  try {
+    const { rowCount } = await query('DELETE FROM invoices WHERE id = $1', [
+      Number(req.params.id),
+    ]);
+    if (!rowCount) return res.status(404).json({ error: 'No such invoice.' });
+    return res.status(204).end();
+  } catch (err) {
+    return next(err);
+  }
+});

@@ -306,6 +306,79 @@ async function main() {
   });
   check('non-images are rejected', badType.status === 415, `got ${badType.status}`);
 
+  console.log('\ninvoices');
+  const settingsSaved = await api(
+    '/api/admin/invoice-settings',
+    json('PUT', {
+      issuerName: 'Carterlane', issuerLegal: 'Smoke Test Ltd',
+      issuerAddress: '1 Test Street\nLondon', issuerEmail: 'a@b.com',
+      issuerPhone: '0000', issuerCompanyNo: '00000000',
+      bankName: 'Smoke', bankSortCode: '00-00-00', bankAccount: '00000000',
+      paymentTerms: 'Due in 14 days.',
+    }, token),
+  );
+  check('invoice settings save', settingsSaved.body?.issuer_legal === 'Smoke Test Ltd');
+
+  const invNumber = `SMOKE-${Date.now().toString().slice(-8)}`;
+  const invoice = await api(
+    '/api/admin/invoices',
+    json('POST', {
+      number: invNumber, issuedOn: iso(0), dueOn: iso(14), period: 'Test period',
+      clientName: 'Smoke Client', clientAddress: '1 Road\nTown\nAB1 2CD',
+      description: 'Accommodation', detail: 'Daily rate', days: 15, rate: 100,
+      paid: false,
+    }, token),
+  );
+  check('invoice is created', invoice.status === 201, JSON.stringify(invoice.body));
+  check('invoice total is days times rate', invoice.body?.total === 1500,
+    String(invoice.body?.total));
+
+  const dupe = await api(
+    '/api/admin/invoices',
+    json('POST', {
+      number: invNumber, issuedOn: iso(0), clientName: 'Another',
+      description: 'x', days: 1, rate: 1,
+    }, token),
+  );
+  check('a duplicate invoice number is refused', dupe.status === 409, `got ${dupe.status}`);
+
+  const badDays = await api(
+    '/api/admin/invoices',
+    json('POST', {
+      number: `${invNumber}-B`, issuedOn: iso(0), clientName: 'A',
+      description: 'x', days: 0, rate: 10,
+    }, token),
+  );
+  check('zero days is refused', badDays.status === 400, `got ${badDays.status}`);
+
+  check(
+    'invoices require a sign-in',
+    (await api('/api/admin/invoices')).status === 401,
+  );
+
+  const marked = await api(
+    `/api/admin/invoices/${invoice.body.id}`,
+    json('PUT', {
+      number: invNumber, issuedOn: iso(0), period: 'Test period',
+      clientName: 'Smoke Client', clientAddress: '1 Road',
+      description: 'Accommodation', detail: 'Daily rate', days: 15, rate: 100,
+      paid: true, paidOn: iso(1),
+    }, token),
+  );
+  check('an invoice can be marked paid', marked.body?.paid === true);
+
+  const listed2 = await api('/api/admin/invoices', auth(token));
+  check(
+    'the invoice appears in the list',
+    listed2.body?.some((i) => i.number === invNumber),
+  );
+
+  check(
+    'invoice can be deleted',
+    (await api(`/api/admin/invoices/${invoice.body.id}`, { method: 'DELETE', ...auth(token) }))
+      .status === 204,
+  );
+
   console.log('\ncleanup');
   const cleanup = [
     api(`/api/admin/photos/${photoId}`, { method: 'DELETE', ...auth(token) }),

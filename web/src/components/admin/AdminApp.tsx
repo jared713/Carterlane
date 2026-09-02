@@ -8,12 +8,14 @@ import { AdminBookings } from './AdminBookings';
 import { AdminRates } from './AdminRates';
 import { AdminPhotos } from './AdminPhotos';
 import { AdminSettings } from './AdminSettings';
+import { AdminInvoices } from './AdminInvoices';
 
 const TABS = [
   { id: 'calendar', label: 'Calendar' },
   { id: 'bookings', label: 'Bookings' },
   { id: 'rates', label: 'Rates' },
   { id: 'photos', label: 'Photos' },
+  { id: 'invoices', label: 'Invoices' },
   { id: 'settings', label: 'Details' },
 ] as const;
 
@@ -146,6 +148,7 @@ export function AdminApp() {
         {tab === 'bookings' && <AdminBookings onExpired={signOut} />}
         {tab === 'rates' && <AdminRates onExpired={signOut} />}
         {tab === 'photos' && <AdminPhotos onExpired={signOut} />}
+        {tab === 'invoices' && <AdminInvoices onExpired={signOut} />}
         {tab === 'settings' && <AdminSettings onExpired={signOut} />}
       </main>
     </div>
