@@ -13,6 +13,8 @@ type PropertyRow = {
   bathrooms: number;
   max_guests: number;
   base_rate: number;
+  base_rate_label: string;
+  base_rate_note: string;
   cleaning_fee: number;
   min_nights: number;
   max_nights: number;
@@ -86,6 +88,8 @@ export function AdminSettings({ onExpired }: PanelProps) {
           bathrooms: Number(row.bathrooms),
           maxGuests: Number(row.max_guests),
           baseRate: Number(row.base_rate),
+          baseRateLabel: row.base_rate_label,
+          baseRateNote: row.base_rate_note,
           cleaningFee: Number(row.cleaning_fee),
           minNights: Number(row.min_nights),
           maxNights: Number(row.max_nights),
@@ -179,14 +183,12 @@ export function AdminSettings({ onExpired }: PanelProps) {
 
       <div className="space-y-8">
         <div className="card p-6">
-          <h2 className="font-display text-xl">Standard rate</h2>
+          <h2 className="font-display text-xl">Charges &amp; stay length</h2>
           <p className="mt-1 text-sm text-stone-500">
-            Applies to every night not covered by a season under Rates.
+            Nightly rates live under Rates; these apply to every stay.
           </p>
           <div className="mt-5 grid grid-cols-2 gap-3">
-            {numberField('Per night', 'base_rate', { min: 0, step: 1, required: true })}
             {numberField('Cleaning charge', 'cleaning_fee', { min: 0, step: 1 })}
-            {numberField('Minimum nights', 'min_nights', { min: 1, max: 90 })}
             {numberField('Maximum nights', 'max_nights', { min: 1, max: 365 })}
             <div>
               <label className="field-label" htmlFor="p-currency">Currency</label>

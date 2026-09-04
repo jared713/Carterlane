@@ -78,6 +78,42 @@ async function main() {
     (await api('/api/admin/bookings', auth(token))).status === 200,
   );
 
+  console.log('\nthe standing rate');
+  const propBefore = await api('/api/admin/property', auth(token));
+  const asPayload = (over) => {
+    const d = propBefore.body;
+    return {
+      name: d.name, tagline: d.tagline, description: d.description, address: d.address,
+      bedrooms: d.bedrooms, bathrooms: d.bathrooms, maxGuests: d.max_guests,
+      baseRate: d.base_rate, baseRateLabel: d.base_rate_label,
+      baseRateNote: d.base_rate_note, cleaningFee: d.cleaning_fee,
+      minNights: d.min_nights, maxNights: d.max_nights, currency: d.currency,
+      checkInTime: d.check_in_time, checkOutTime: d.check_out_time,
+      amenities: d.amenities, contactEmail: d.contact_email,
+      contactPhone: d.contact_phone, ...over,
+    };
+  };
+
+  const renamed = await api(
+    '/api/admin/property',
+    json('PUT', asPayload({ baseRateLabel: 'Smoke label', baseRateNote: 'Smoke note' }), token),
+  );
+  check('the standing rate can be renamed', renamed.body?.base_rate_label === 'Smoke label');
+  check(
+    'its description can be reworded',
+    renamed.body?.base_rate_note === 'Smoke note',
+  );
+  check(
+    'the public property carries the wording',
+    (await api('/api/property')).body?.baseRateLabel === 'Smoke label',
+  );
+  check(
+    'an empty label is refused',
+    (await api('/api/admin/property', json('PUT', asPayload({ baseRateLabel: '' }), token)))
+      .status === 400,
+  );
+  await api('/api/admin/property', json('PUT', asPayload({}), token));
+
   console.log('\nrates');
   const rate = await api(
     '/api/admin/rates',

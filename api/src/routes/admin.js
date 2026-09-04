@@ -84,6 +84,8 @@ const propertySchema = z.object({
   bathrooms: z.coerce.number().int().min(0).max(20),
   maxGuests: z.coerce.number().int().min(1).max(20),
   baseRate: z.coerce.number().min(0).max(100000),
+  baseRateLabel: z.string().trim().min(1).max(60),
+  baseRateNote: z.string().trim().max(120),
   cleaningFee: z.coerce.number().min(0).max(100000),
   minNights: z.coerce.number().int().min(1).max(90),
   maxNights: z.coerce.number().int().min(1).max(365),
@@ -125,13 +127,14 @@ adminRouter.put('/property', async (req, res, next) => {
          bathrooms = $6, max_guests = $7, base_rate = $8, cleaning_fee = $9,
          min_nights = $10, max_nights = $11, currency = $12, check_in_time = $13,
          check_out_time = $14, amenities = $15::jsonb, contact_email = $16,
-         contact_phone = $17, updated_at = now()
+         contact_phone = $17, base_rate_label = $18, base_rate_note = $19,
+         updated_at = now()
        WHERE id = 1 RETURNING *`,
       [
         p.name, p.tagline, p.description, p.address, p.bedrooms, p.bathrooms,
         p.maxGuests, p.baseRate, p.cleaningFee, p.minNights, p.maxNights,
         p.currency, p.checkInTime, p.checkOutTime, JSON.stringify(p.amenities),
-        p.contactEmail, p.contactPhone,
+        p.contactEmail, p.contactPhone, p.baseRateLabel, p.baseRateNote,
       ],
     );
     return res.json(rows[0]);

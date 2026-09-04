@@ -5,6 +5,16 @@ import { adminRequest } from '@/lib/api';
 import { addDays, formatMoney, formatShort, today } from '@/lib/dates';
 import { useLoader } from '@/lib/useLoader';
 import type { AdminRate } from '@/lib/types';
+
+/** The property row, as the admin endpoint returns it. */
+type PropertyRow = {
+  base_rate: number;
+  base_rate_label: string;
+  base_rate_note: string;
+  min_nights: number;
+  currency: string;
+  [key: string]: unknown;
+};
 import { handleError, type PanelProps } from './shared';
 
 type Draft = {
@@ -87,6 +97,13 @@ export function AdminRates({ onExpired }: PanelProps) {
   }
 
   return (
+    <div className="space-y-8">
+      {/* The standing rate sits with the seasons because that is where anyone
+          looking for a rate will look, and because it is the row the public
+          table shows first. It is not a season: it has no dates, and it prices
+          every night the seasons leave uncovered. */}
+      <StandardRate onExpired={onExpired} />
+
     <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr]">
       <div className="card overflow-hidden">
         <div className="border-b border-stone-200 px-6 py-5">
@@ -251,6 +268,108 @@ export function AdminRates({ onExpired }: PanelProps) {
           </button>
         )}
       </form>
+    </div>
+    </div>
+  );
+}
+
+/**
+ * The standing nightly rate, and the words the public table uses for it.
+ *
+ * It edits the property record rather than a rate rule, so it sends the whole
+ * property back — the endpoint replaces the row wholesale, and sending a subset
+ * would blank everything else.
+ */
+function StandardRate({ onExpired }: PanelProps) {
+  const [row, setRow] = useState<PropertyRow | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  const fetcher = useCallback(() => adminRequest<PropertyRow>('/property'), []);
+  const onError = useCallback(
+    (err: unknown) => setNote(handleError(err, onExpired)),
+    [onExpired],
+  );
+  const { data, setData } = useLoader(fetcher, onError);
+
+  const current = row ?? data;
+  if (!current) {
+    return <div className="h-40 animate-pulse rounded-2xl bg-stone-200/60" aria-hidden />;
+  }
+
+  const edit = (patch: Partial<PropertyRow>) => {
+    setNote(null);
+    setRow({ ...current, ...patch });
+  };
+
+  async function save() {
+    if (!current) return;
+    setBusy(true);
+    setNote(null);
+    try {
+      const saved = await adminRequest<PropertyRow>('/property', {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: current.name, tagline: current.tagline,
+          description: current.description, address: current.address,
+          bedrooms: Number(current.bedrooms), bathrooms: Number(current.bathrooms),
+          maxGuests: Number(current.max_guests), baseRate: Number(current.base_rate),
+          baseRateLabel: current.base_rate_label, baseRateNote: current.base_rate_note,
+          cleaningFee: Number(current.cleaning_fee), minNights: Number(current.min_nights),
+          maxNights: Number(current.max_nights), currency: current.currency,
+          checkInTime: current.check_in_time, checkOutTime: current.check_out_time,
+          amenities: current.amenities, contactEmail: current.contact_email,
+          contactPhone: current.contact_phone,
+        }),
+      });
+      setData(saved);
+      setRow(null);
+      setNote('Saved.');
+    } catch (err) {
+      onError(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="card p-6">
+      <h2 className="font-display text-xl">Standing rate</h2>
+      <p className="mt-1 text-sm text-stone-500">
+        Charged for every night no season below covers, and shown as the first
+        row of the rates table on the site. Both its wording and its price are
+        yours to set.
+      </p>
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <label className="field-label" htmlFor="std-label">Shown as</label>
+          <input id="std-label" className="field" value={current.base_rate_label}
+            onChange={(e) => edit({ base_rate_label: e.target.value })} />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="std-note">Description</label>
+          <input id="std-note" className="field" value={current.base_rate_note}
+            onChange={(e) => edit({ base_rate_note: e.target.value })} />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="std-rate">Per night</label>
+          <input id="std-rate" type="number" min="0" step="1" className="field"
+            value={String(current.base_rate)}
+            onChange={(e) => edit({ base_rate: Number(e.target.value) })} />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="std-min">Minimum nights</label>
+          <input id="std-min" type="number" min="1" max="90" className="field"
+            value={String(current.min_nights)}
+            onChange={(e) => edit({ min_nights: Number(e.target.value) })} />
+        </div>
+      </div>
+      <div className="mt-5 flex items-center gap-4">
+        <button type="button" className="btn-primary" disabled={busy || !row} onClick={save}>
+          {busy ? 'Saving…' : 'Save standing rate'}
+        </button>
+        {note && <span className="text-sm text-stone-600">{note}</span>}
+      </div>
     </div>
   );
 }

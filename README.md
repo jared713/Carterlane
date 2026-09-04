@@ -22,9 +22,9 @@ nights and emails both sides. No payment is taken online.
 |---|---|
 | Calendar | Click a first and last night, then close them or put them back on sale |
 | Bookings | Confirm or cancel requests; cancelling releases the nights immediately |
-| Rates | Seasonal pricing with its own minimum stay; overlaps resolve by priority |
+| Rates | The standing rate and its wording, plus seasons with their own minimum stay; overlaps resolve by priority |
 | Photos | Drag in photographs, caption and reorder them; they resize automatically |
-| Details | Standard rate, cleaning charge, capacity, description, amenities, contact |
+| Details | Cleaning charge, capacity, description, amenities, contact |
 | Invoices | Raise an invoice, preview it as it will print, and save it to PDF |
 
 Everything the public site shows comes from the database, so none of it needs
@@ -146,7 +146,10 @@ calendar. Re-instating a cancelled booking runs the same check.
 ### Pricing
 
 Each night is priced independently: the highest-priority rate rule covering it
-wins, otherwise the standard rate applies. A rule can also raise the minimum
+wins, otherwise the standing rate applies. That standing rate cannot be removed
+— it is what prices any night the seasons leave uncovered — but its name and
+description are the owner's, so no row of the public rates table is fixed in
+the code. A rule can also raise the minimum
 stay for the nights it covers — which is how a four-night minimum over Christmas
 sits inside an otherwise two-night season. The cleaning charge is added once.
 

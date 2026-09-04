@@ -26,9 +26,12 @@ export function RatesTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-stone-100">
+          {/* The standing rate: named by the owner, like every other row. It
+              cannot simply be dropped — it is what prices any night no season
+              covers, so hiding it would leave those nights unadvertised. */}
           <tr>
-            <td className="px-5 py-4 text-ink">Standard</td>
-            <td className="px-5 py-4 text-stone-600">All other nights</td>
+            <td className="px-5 py-4 text-ink">{property.baseRateLabel}</td>
+            <td className="px-5 py-4 text-stone-600">{property.baseRateNote}</td>
             <td className="px-5 py-4 text-stone-600">{property.minNights} nights</td>
             <td className="px-5 py-4 text-right font-medium text-ink">
               {formatMoney(property.baseRate, property.currency)}

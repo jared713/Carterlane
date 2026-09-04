@@ -26,6 +26,14 @@ const STATEMENTS = [
 
   `INSERT INTO property (id) VALUES (1) ON CONFLICT (id) DO NOTHING`,
 
+  // Added after the table existed, so they arrive as alterations. The labels
+  // for the standing rate live here rather than in the page, so every row of
+  // the public rates table is the owner's to word.
+  `ALTER TABLE property ADD COLUMN IF NOT EXISTS
+     base_rate_label TEXT NOT NULL DEFAULT 'Standard'`,
+  `ALTER TABLE property ADD COLUMN IF NOT EXISTS
+     base_rate_note TEXT NOT NULL DEFAULT 'All other nights'`,
+
   // A "night" is identified by the date it starts on. A block covers the
   // nights start_night .. end_night inclusive.
   `CREATE TABLE IF NOT EXISTS blocks (

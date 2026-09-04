@@ -51,6 +51,8 @@ publicRouter.get('/property', async (_req, res, next) => {
       minNights: property.min_nights,
       maxNights: property.max_nights,
       baseRate: property.base_rate,
+      baseRateLabel: property.base_rate_label,
+      baseRateNote: property.base_rate_note,
       fromRate,
       cleaningFee: property.cleaning_fee,
       currency: property.currency,

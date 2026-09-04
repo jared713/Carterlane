@@ -25,6 +25,8 @@ const FALLBACK: Property = {
   minNights: 2,
   maxNights: 28,
   baseRate: 185,
+  baseRateLabel: 'Standard',
+  baseRateNote: 'All other nights',
   fromRate: 185,
   cleaningFee: 65,
   currency: 'GBP',

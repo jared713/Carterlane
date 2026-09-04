@@ -9,6 +9,8 @@ export type Property = {
   minNights: number;
   maxNights: number;
   baseRate: number;
+  baseRateLabel: string;
+  baseRateNote: string;
   fromRate: number;
   cleaningFee: number;
   currency: string;
