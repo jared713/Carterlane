@@ -97,30 +97,25 @@ async function request<T>(path: string, options: FetchOptions = {}): Promise<T> 
 
 /**
  * Rendering the page and interacting with it want different patience. These
- * two back page content that has a sensible fallback, so they give up quickly;
- * the quote and booking calls a guest is waiting on are allowed far longer.
+ * back page content that has a sensible fallback, so they give up quickly; the
+ * quote and booking calls a guest is waiting on are allowed far longer.
+ *
+ * None of them cache. This is the content the owner edits, and a page that
+ * serves yesterday's prices for minutes after a change is worse than one that
+ * spends a fifth of a second fetching them. The timeout below bounds what that
+ * costs when the API is unwell.
  */
 const RENDER_TIMEOUT_MS = 4_000;
 
 export function getProperty() {
-  return request<Property>('/api/property', {
-    revalidate: 60,
-    timeoutMs: RENDER_TIMEOUT_MS,
-  });
+  return request<Property>('/api/property', { timeoutMs: RENDER_TIMEOUT_MS });
 }
 
 export function getPhotos() {
-  return request<Photo[]>('/api/photos', {
-    revalidate: 60,
-    timeoutMs: RENDER_TIMEOUT_MS,
-  });
+  return request<Photo[]>('/api/photos', { timeoutMs: RENDER_TIMEOUT_MS });
 }
 
-/**
- * Live by default, for the calendar a guest is actually clicking on. The home
- * page passes a revalidate window instead, because it only needs the rate
- * rules for the season table — so rendering never waits on a live call.
- */
+/** Always live: both the guest's calendar and the season table read from it. */
 export function getAvailability(
   from: string,
   to: string,

@@ -57,9 +57,8 @@ export default async function HomePage() {
       onFailure('the photographs')(error);
       return [];
     }),
-    // Only the season table needs this; the calendar fetches its own live copy.
+    // The season table reads from this; the calendar fetches its own copy.
     getAvailability(today(), addDays(today(), 540), {
-      revalidate: 300,
       timeoutMs: 4_000,
     }).catch((error): Availability | null => {
       onFailure('the rates')(error);

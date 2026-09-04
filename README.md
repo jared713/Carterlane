@@ -164,6 +164,19 @@ it, so what the printer produces is what is on screen. Your own details and
 bank particulars are stored once and reused; each invoice keeps the days and
 rate it was issued with, so reprinting one years later shows what was sent.
 
+### Nothing the owner edits is cached
+
+The home page fetches the property details, the photographs and the rate rules
+fresh on every render. Caching them was worse than it looked: a change made in
+the owner area took about a minute to appear, and because the standard rate and
+the seasons came from two different requests with two different windows, the
+rates table could briefly show a new standard rate above stale seasons. Read as
+"the site didn't take my change", which is exactly what it looked like.
+
+Three parallel requests cost a fraction of a second, and the four-second
+timeout bounds what that becomes when the API is unwell. The guest's calendar
+was already live and is unchanged.
+
 ### Photographs
 
 Uploads are resized to fit 2400px, converted to WebP and stored in Postgres, so
